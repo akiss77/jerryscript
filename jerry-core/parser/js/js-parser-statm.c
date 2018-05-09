@@ -684,7 +684,7 @@ parser_parse_while_statement_start (parser_context_t *context_p) /**< context */
   parser_emit_cbc_forward_branch (context_p, CBC_JUMP_FORWARD, &while_statement.branch);
 
   JERRY_ASSERT (context_p->last_cbc_opcode == PARSER_CBC_UNAVAILABLE);
-  while_statement.start_offset = context_p->byte_code_size;
+  while_statement.start_offset = PARSER_BYTE_CODE_SIZE (context_p);
 
   /* The conditional part is processed at the end. */
   parser_scan_until (context_p, &while_statement.condition_range, LEXER_RIGHT_PAREN);
@@ -798,7 +798,7 @@ parser_parse_for_statement_start (parser_context_t *context_p) /**< context */
                                         &for_in_statement.branch);
 
     JERRY_ASSERT (context_p->last_cbc_opcode == PARSER_CBC_UNAVAILABLE);
-    for_in_statement.start_offset = context_p->byte_code_size;
+    for_in_statement.start_offset = PARSER_BYTE_CODE_SIZE (context_p);
 
     parser_save_range (context_p, &range, context_p->source_end_p);
     parser_set_range (context_p, &start_range);
@@ -928,7 +928,7 @@ parser_parse_for_statement_start (parser_context_t *context_p) /**< context */
     parser_emit_cbc_forward_branch (context_p, CBC_JUMP_FORWARD, &for_statement.branch);
 
     JERRY_ASSERT (context_p->last_cbc_opcode == PARSER_CBC_UNAVAILABLE);
-    for_statement.start_offset = context_p->byte_code_size;
+    for_statement.start_offset = PARSER_BYTE_CODE_SIZE (context_p);
 
     /* The conditional and expression parts are processed at the end. */
     parser_scan_until (context_p, &for_statement.condition_range, LEXER_SEMICOLON);
@@ -1859,7 +1859,7 @@ parser_parse_statements (parser_context_t *context_p) /**< context */
 
         JERRY_ASSERT (context_p->last_cbc_opcode == PARSER_CBC_UNAVAILABLE);
 
-        do_while_statement.start_offset = context_p->byte_code_size;
+        do_while_statement.start_offset = PARSER_BYTE_CODE_SIZE (context_p);
         loop.branch_list_p = NULL;
 
         parser_stack_push (context_p, &do_while_statement, sizeof (parser_do_while_statement_t));

@@ -2265,7 +2265,7 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
   context.literal_count = 0;
 
   parser_cbc_stream_init (&context.byte_code);
-  context.byte_code_size = 0;
+  context.byte_code_page_count = 0;
   parser_list_init (&context.literal_pool,
                     sizeof (lexer_literal_t),
                     (uint32_t) ((128 - sizeof (void *)) / sizeof (lexer_literal_t)));
@@ -2411,7 +2411,7 @@ parser_save_context (parser_context_t *context_p, /**< context */
   saved_context_p->literal_count = context_p->literal_count;
 
   saved_context_p->byte_code = context_p->byte_code;
-  saved_context_p->byte_code_size = context_p->byte_code_size;
+  saved_context_p->byte_code_page_count = context_p->byte_code_page_count;
   saved_context_p->literal_pool_data = context_p->literal_pool.data;
 
 #ifndef JERRY_NDEBUG
@@ -2431,7 +2431,7 @@ parser_save_context (parser_context_t *context_p, /**< context */
   context_p->literal_count = 0;
 
   parser_cbc_stream_init (&context_p->byte_code);
-  context_p->byte_code_size = 0;
+  context_p->byte_code_page_count = 0;
   parser_list_reset (&context_p->literal_pool);
 
 #ifndef JERRY_NDEBUG
@@ -2463,7 +2463,7 @@ parser_restore_context (parser_context_t *context_p, /**< context */
   context_p->literal_count = saved_context_p->literal_count;
 
   context_p->byte_code = saved_context_p->byte_code;
-  context_p->byte_code_size = saved_context_p->byte_code_size;
+  context_p->byte_code_page_count = saved_context_p->byte_code_page_count;
   context_p->literal_pool.data = saved_context_p->literal_pool_data;
 
 #ifndef JERRY_NDEBUG

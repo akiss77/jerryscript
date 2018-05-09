@@ -243,7 +243,7 @@ typedef struct parser_saved_context_t
 
   /* Memory storage members. */
   parser_mem_data_t byte_code;                /**< byte code buffer */
-  uint32_t byte_code_size;                    /**< byte code size for branches */
+  uint32_t byte_code_page_count;              /**< TODO */
   parser_mem_data_t literal_pool_data;        /**< literal list */
 
 #ifndef JERRY_NDEBUG
@@ -288,7 +288,7 @@ typedef struct
 
   /* Memory storage members. */
   parser_mem_data_t byte_code;                /**< byte code buffer */
-  uint32_t byte_code_size;                    /**< current byte code size for branches */
+  uint32_t byte_code_page_count;              /**< TODO */
   parser_list_t literal_pool;                 /**< literal list */
   parser_mem_data_t stack;                    /**< storage space */
   parser_mem_page_t *free_page_p;             /**< space for fast allocation */
@@ -315,6 +315,9 @@ typedef struct
   parser_line_counter_t last_line_info_line; /**< last line where line info has been inserted */
 #endif /* JERRY_ENABLE_LINE_INFO */
 } parser_context_t;
+
+#define PARSER_BYTE_CODE_SIZE(context_p) \
+  ((context_p)->byte_code_page_count * PARSER_CBC_STREAM_PAGE_SIZE + (context_p)->byte_code.last_position)
 
 /**
  * @}

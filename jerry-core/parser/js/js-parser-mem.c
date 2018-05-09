@@ -166,6 +166,8 @@ parser_cbc_stream_alloc_page (parser_context_t *context_p) /**< context */
     data_p->first_p = page_p;
   }
   data_p->last_p = page_p;
+
+  context_p->byte_code_page_count++;
 } /* parser_cbc_stream_alloc_page */
 
 /**********************************************************************/
