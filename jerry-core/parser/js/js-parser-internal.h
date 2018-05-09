@@ -339,7 +339,7 @@ void parser_free_local (void *ptr, size_t size);
 
 void parser_cbc_stream_init (parser_mem_data_t *data_p);
 void parser_cbc_stream_free (parser_mem_data_t *data_p);
-void parser_cbc_stream_alloc_page (parser_context_t *context_p, parser_mem_data_t *data_p);
+void parser_cbc_stream_alloc_page (parser_context_t *context_p);
 
 /* Parser list. Ensures pointer alignment. */
 

@@ -148,9 +148,9 @@ parser_cbc_stream_free (parser_mem_data_t *data_p) /**< memory manager */
  * Appends a byte at the end of the byte stream.
  */
 void
-parser_cbc_stream_alloc_page (parser_context_t *context_p, /**< context */
-                              parser_mem_data_t *data_p) /**< memory manager */
+parser_cbc_stream_alloc_page (parser_context_t *context_p) /**< context */
 {
+  parser_mem_data_t *data_p = &context_p->byte_code;
   size_t size = sizeof (parser_mem_page_t *) + PARSER_CBC_STREAM_PAGE_SIZE;
   parser_mem_page_t *page_p = (parser_mem_page_t *) parser_malloc (context_p, size);
 

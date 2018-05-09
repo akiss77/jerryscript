@@ -57,7 +57,7 @@ parser_emit_two_bytes (parser_context_t *context_p, /**< context */
   {
     parser_mem_page_t *page_p;
 
-    parser_cbc_stream_alloc_page (context_p, &context_p->byte_code);
+    parser_cbc_stream_alloc_page (context_p);
     page_p = context_p->byte_code.last_p;
     page_p->bytes[0] = first_byte;
     page_p->bytes[1] = second_byte;
@@ -66,7 +66,7 @@ parser_emit_two_bytes (parser_context_t *context_p, /**< context */
   else
   {
     context_p->byte_code.last_p->bytes[PARSER_CBC_STREAM_PAGE_SIZE - 1] = first_byte;
-    parser_cbc_stream_alloc_page (context_p, &context_p->byte_code);
+    parser_cbc_stream_alloc_page (context_p);
     context_p->byte_code.last_p->bytes[0] = second_byte;
     context_p->byte_code.last_position = 1;
   }
@@ -75,7 +75,7 @@ parser_emit_two_bytes (parser_context_t *context_p, /**< context */
 #define PARSER_APPEND_TO_BYTE_CODE(context_p, byte) \
   if ((context_p)->byte_code.last_position >= PARSER_CBC_STREAM_PAGE_SIZE) \
   { \
-    parser_cbc_stream_alloc_page ((context_p), &(context_p)->byte_code); \
+    parser_cbc_stream_alloc_page ((context_p)); \
   } \
   (context_p)->byte_code.last_p->bytes[(context_p)->byte_code.last_position++] = (uint8_t) (byte)
 
