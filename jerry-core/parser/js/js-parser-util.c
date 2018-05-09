@@ -392,7 +392,9 @@ parser_emit_cbc_forward_branch (parser_context_t *context_p, /**< context */
                                 parser_branch_t *branch_p) /**< branch result */
 {
   uint8_t flags;
-  uint32_t extra_byte_code_increase;
+#ifdef PARSER_DUMP_BYTE_CODE
+  const char *name;
+#endif /* PARSER_DUMP_BYTE_CODE */
 
   if (context_p->last_cbc_opcode != PARSER_CBC_UNAVAILABLE)
   {
@@ -406,7 +408,10 @@ parser_emit_cbc_forward_branch (parser_context_t *context_p, /**< context */
   {
     JERRY_ASSERT (opcode < CBC_END);
     flags = cbc_flags[opcode];
-    extra_byte_code_increase = 0;
+
+#ifdef PARSER_DUMP_BYTE_CODE
+    name = cbc_names[opcode];
+#endif /* PARSER_DUMP_BYTE_CODE */
   }
   else
   {
@@ -415,7 +420,10 @@ parser_emit_cbc_forward_branch (parser_context_t *context_p, /**< context */
 
     JERRY_ASSERT (opcode < CBC_EXT_END);
     flags = cbc_ext_flags[opcode];
-    extra_byte_code_increase = 1;
+
+#ifdef PARSER_DUMP_BYTE_CODE
+    name = cbc_ext_names[opcode];
+#endif /* PARSER_DUMP_BYTE_CODE */
   }
 
   JERRY_ASSERT (flags & CBC_HAS_BRANCH_ARG);
@@ -430,9 +438,7 @@ parser_emit_cbc_forward_branch (parser_context_t *context_p, /**< context */
 #ifdef PARSER_DUMP_BYTE_CODE
   if (context_p->is_show_opcodes)
   {
-    JERRY_DEBUG_MSG ("  [%3d] %s\n",
-                     (int) context_p->stack_depth,
-                     extra_byte_code_increase == 0 ? cbc_names[opcode] : cbc_ext_names[opcode]);
+    JERRY_DEBUG_MSG ("  [%3d] %s\n", (int) context_p->stack_depth, name);
   }
 #endif /* PARSER_DUMP_BYTE_CODE */
 
