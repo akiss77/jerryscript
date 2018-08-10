@@ -52,14 +52,14 @@
 #endif /* !CONFIG_MEM_HEAP_AREA_SIZE */
 
 /**
- * Max heap usage limit
+ * After allocating at least this number of bytes, "try give memory back"
+ * callbacks are called.
+ *
+ * Note:
+ *      It is highly recommended to use a power of two to facilitate compiler
+ *      optimizations.
  */
-#define CONFIG_MEM_HEAP_MAX_LIMIT 8192
-
-/**
- * Desired limit of heap usage
- */
-#define CONFIG_MEM_HEAP_DESIRED_LIMIT (JERRY_MIN (CONFIG_MEM_HEAP_AREA_SIZE / 32, CONFIG_MEM_HEAP_MAX_LIMIT))
+#define CONFIG_MEM_HEAP_FREE_CB_TRIGGER (JERRY_MIN (CONFIG_MEM_HEAP_AREA_SIZE / 32, 8192))
 
 /**
  * Use 32-bit/64-bit float for ecma-numbers

@@ -125,8 +125,6 @@ jmem_heap_init (void)
 #ifndef JERRY_SYSTEM_ALLOCATOR
   JERRY_ASSERT ((uintptr_t) JERRY_HEAP_CONTEXT (area) % JMEM_ALIGNMENT == 0);
 
-  JERRY_CONTEXT (jmem_heap_limit) = CONFIG_MEM_HEAP_DESIRED_LIMIT;
-
   jmem_heap_free_t *const region_p = (jmem_heap_free_t *) JERRY_HEAP_CONTEXT (area);
 
   region_p->size = JMEM_HEAP_AREA_SIZE;
@@ -273,11 +271,6 @@ jmem_heap_alloc_block_internal (const size_t size) /**< size of requested block 
     }
   }
 
-  while (JERRY_CONTEXT (jmem_heap_allocated_size) >= JERRY_CONTEXT (jmem_heap_limit))
-  {
-    JERRY_CONTEXT (jmem_heap_limit) += CONFIG_MEM_HEAP_DESIRED_LIMIT;
-  }
-
   JMEM_VALGRIND_NOACCESS_SPACE (&JERRY_HEAP_CONTEXT (first), sizeof (jmem_heap_free_t));
 
   if (JERRY_UNLIKELY (!data_space_p))
@@ -321,7 +314,11 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
   jmem_run_free_unused_memory_callbacks (JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
 
-  if (JERRY_CONTEXT (jmem_heap_allocated_size) + size >= JERRY_CONTEXT (jmem_heap_limit))
+  size_t jmem_heap_allocated_size = JERRY_CONTEXT (jmem_heap_allocated_size);
+  if (jmem_heap_allocated_size != 0
+      && (jmem_heap_allocated_size % CONFIG_MEM_HEAP_FREE_CB_TRIGGER == 0
+          || ((jmem_heap_allocated_size + size) / CONFIG_MEM_HEAP_FREE_CB_TRIGGER
+               > jmem_heap_allocated_size / CONFIG_MEM_HEAP_FREE_CB_TRIGGER)))
   {
     jmem_run_free_unused_memory_callbacks (JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
   }
@@ -402,7 +399,6 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
   /* checking that ptr points to the heap */
   JERRY_ASSERT (jmem_is_heap_pointer (ptr));
   JERRY_ASSERT (size > 0);
-  JERRY_ASSERT (JERRY_CONTEXT (jmem_heap_limit) >= JERRY_CONTEXT (jmem_heap_allocated_size));
 
   JMEM_VALGRIND_FREELIKE_SPACE (ptr);
   JMEM_VALGRIND_NOACCESS_SPACE (ptr, size);
@@ -486,13 +482,7 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
   JERRY_ASSERT (JERRY_CONTEXT (jmem_heap_allocated_size) > 0);
   JERRY_CONTEXT (jmem_heap_allocated_size) -= aligned_size;
 
-  while (JERRY_CONTEXT (jmem_heap_allocated_size) + CONFIG_MEM_HEAP_DESIRED_LIMIT <= JERRY_CONTEXT (jmem_heap_limit))
-  {
-    JERRY_CONTEXT (jmem_heap_limit) -= CONFIG_MEM_HEAP_DESIRED_LIMIT;
-  }
-
   JMEM_VALGRIND_NOACCESS_SPACE (&JERRY_HEAP_CONTEXT (first), sizeof (jmem_heap_free_t));
-  JERRY_ASSERT (JERRY_CONTEXT (jmem_heap_limit) >= JERRY_CONTEXT (jmem_heap_allocated_size));
   JMEM_HEAP_STAT_FREE (size);
 #else /* JERRY_SYSTEM_ALLOCATOR */
 #ifdef JMEM_STATS
