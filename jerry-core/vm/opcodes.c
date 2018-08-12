@@ -271,7 +271,7 @@ opfunc_for_in (ecma_value_t left_value, /**< left value */
     *result_obj_p = ecma_make_object_value (obj_p);
   }
 
-  jmem_heap_free_block (prop_names_coll_p, sizeof (ecma_collection_header_t));
+  JMEM_POOLS_FREE (prop_names_coll_p, ecma_collection_header_t);
   ecma_free_value (obj_expr_value);
 
   return prop_names_p;

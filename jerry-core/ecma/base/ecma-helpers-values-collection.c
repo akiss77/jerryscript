@@ -40,7 +40,7 @@ ecma_collection_header_t *
 ecma_new_values_collection (void)
 {
   ecma_collection_header_t *header_p;
-  header_p = (ecma_collection_header_t *) jmem_pools_alloc (sizeof (ecma_collection_header_t));
+  header_p = JMEM_POOLS_ALLOC (ecma_collection_header_t);
 
   header_p->item_count = 0;
   header_p->first_chunk_cp = ECMA_NULL_POINTER;
@@ -59,7 +59,7 @@ ecma_free_values_collection (ecma_collection_header_t *header_p, /**< collection
   ecma_collection_chunk_t *chunk_p = ECMA_GET_POINTER (ecma_collection_chunk_t,
                                                        header_p->first_chunk_cp);
 
-  jmem_heap_free_block (header_p, sizeof (ecma_collection_header_t));
+  JMEM_POOLS_FREE (header_p, ecma_collection_header_t);
 
   if (chunk_p == NULL)
   {

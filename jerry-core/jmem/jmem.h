@@ -250,8 +250,41 @@ void jmem_run_free_unused_memory_callbacks (jmem_free_unused_memory_severity_t s
  * @{
  */
 
-void *jmem_pools_alloc (size_t size);
-void jmem_pools_free (void *chunk_p, size_t size);
+/**
+ * Allocate memory of fixed size, i.e., the size of a type.
+ */
+#ifdef JERRY_CPOINTER_32_BIT
+#define JMEM_POOLS_ALLOC(type) \
+  (sizeof (type) <= 8  ? (type *) jmem_pools_alloc_8 () : \
+   sizeof (type) <= 16 ? (type *) jmem_pools_alloc_16 () : \
+                         (type *) jmem_heap_alloc_block (sizeof (type)))
+#else /* !JERRY_CPOINTER_32_BIT */
+#define JMEM_POOLS_ALLOC(type) \
+  (sizeof (type) <= 8  ? (type *) jmem_pools_alloc_8 () : \
+                         (type *) jmem_heap_alloc_block (sizeof (type)))
+#endif /* JERRY_CPOINTER_32_BIT */
+
+/**
+ * Free a fixed-size allocation.
+ */
+#ifdef JERRY_CPOINTER_32_BIT
+#define JMEM_POOLS_FREE(chunk_p, type) \
+  (sizeof (type) <= 8  ? jmem_pools_free_8 ((chunk_p)) : \
+   sizeof (type) <= 16 ? jmem_pools_free_16 ((chunk_p)) : \
+                         jmem_heap_free_block ((chunk_p), sizeof (type)))
+#else /* !JERRY_CPOINTER_32_BIT */
+#define JMEM_POOLS_FREE(chunk_p, type) \
+  (sizeof (type) <= 8  ? jmem_pools_free_8 ((chunk_p)) : \
+                         jmem_heap_free_block ((chunk_p), sizeof (type)))
+#endif /* JERRY_CPOINTER_32_BIT */
+
+void *jmem_pools_alloc_8 (void);
+void jmem_pools_free_8 (void *chunk_p);
+
+#ifdef JERRY_CPOINTER_32_BIT
+void *jmem_pools_alloc_16 (void);
+void jmem_pools_free_16 (void *chunk_p);
+#endif /* JERRY_CPOINTER_32_BIT */
 
 /**
  * @}

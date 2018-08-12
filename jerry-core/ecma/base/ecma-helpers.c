@@ -558,7 +558,7 @@ ecma_create_named_accessor_property (ecma_object_t *object_p, /**< object */
   ecma_property_value_t value;
 #ifdef JERRY_CPOINTER_32_BIT
   ecma_getter_setter_pointers_t *getter_setter_pair_p;
-  getter_setter_pair_p = jmem_pools_alloc (sizeof (ecma_getter_setter_pointers_t));
+  getter_setter_pair_p = JMEM_POOLS_ALLOC (ecma_getter_setter_pointers_t);
   ECMA_SET_POINTER (getter_setter_pair_p->getter_p, get_p);
   ECMA_SET_POINTER (getter_setter_pair_p->setter_p, set_p);
   ECMA_SET_POINTER (value.getter_setter_pair_cp, getter_setter_pair_p);
@@ -761,7 +761,7 @@ ecma_free_property (ecma_object_t *object_p, /**< object the property belongs to
       ecma_getter_setter_pointers_t *getter_setter_pair_p;
       getter_setter_pair_p = ECMA_GET_POINTER (ecma_getter_setter_pointers_t,
                                                ECMA_PROPERTY_VALUE_PTR (property_p)->getter_setter_pair_cp);
-      jmem_pools_free (getter_setter_pair_p, sizeof (ecma_getter_setter_pointers_t));
+      JMEM_POOLS_FREE (getter_setter_pair_p, ecma_getter_setter_pointers_t);
 #endif /* JERRY_CPOINTER_32_BIT */
       break;
     }
@@ -1335,12 +1335,6 @@ ecma_free_property_descriptor (ecma_property_descriptor_t *prop_desc_p) /**< pro
 } /* ecma_free_property_descriptor */
 
 /**
- * The size of error reference must be 8 bytes to use jmem_pools_alloc().
- */
-JERRY_STATIC_ASSERT (sizeof (ecma_error_reference_t) == 8,
-                     ecma_error_reference_size_must_be_8_bytes);
-
-/**
  * Create an error reference from a given value.
  *
  * Note:
@@ -1352,7 +1346,7 @@ ecma_value_t
 ecma_create_error_reference (ecma_value_t value, /**< referenced value */
                              bool is_exception) /**< error reference is an exception */
 {
-  ecma_error_reference_t *error_ref_p = (ecma_error_reference_t *) jmem_pools_alloc (sizeof (ecma_error_reference_t));
+  ecma_error_reference_t *error_ref_p = JMEM_POOLS_ALLOC (ecma_error_reference_t);
 
   error_ref_p->refs_and_flags = ECMA_ERROR_REF_ONE | (is_exception ? 0 : ECMA_ERROR_REF_ABORT);
   error_ref_p->value = value;
@@ -1414,7 +1408,7 @@ ecma_deref_error_reference (ecma_error_reference_t *error_ref_p) /**< error refe
   if (error_ref_p->refs_and_flags < ECMA_ERROR_REF_ONE)
   {
     ecma_free_value (error_ref_p->value);
-    jmem_pools_free (error_ref_p, sizeof (ecma_error_reference_t));
+    JMEM_POOLS_FREE (error_ref_p, ecma_error_reference_t);
   }
 } /* ecma_deref_error_reference */
 
@@ -1450,7 +1444,7 @@ ecma_clear_error_reference (ecma_value_t value, /**< error reference */
   }
 
   ecma_value_t referenced_value = error_ref_p->value;
-  jmem_pools_free (error_ref_p, sizeof (ecma_error_reference_t));
+  JMEM_POOLS_FREE (error_ref_p, ecma_error_reference_t);
   return referenced_value;
 } /* ecma_clear_error_reference */
 
