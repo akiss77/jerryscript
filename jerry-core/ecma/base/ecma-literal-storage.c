@@ -47,7 +47,7 @@ ecma_free_string_list (ecma_lit_storage_item_t *string_list_p) /**< string list 
 
     ecma_lit_storage_item_t *prev_item = string_list_p;
     string_list_p = JMEM_CP_GET_POINTER (ecma_lit_storage_item_t, string_list_p->next_cp);
-    jmem_pools_free (prev_item, sizeof (ecma_lit_storage_item_t));
+    JMEM_POOLS_FREE (prev_item, ecma_lit_storage_item_t);
   }
 } /* ecma_free_string_list */
 
@@ -118,7 +118,7 @@ ecma_find_or_create_literal_string (const lit_utf8_byte_t *chars_p, /**< string 
   }
 
   ecma_lit_storage_item_t *new_item_p;
-  new_item_p = (ecma_lit_storage_item_t *) jmem_pools_alloc (sizeof (ecma_lit_storage_item_t));
+  new_item_p = JMEM_POOLS_ALLOC (ecma_lit_storage_item_t);
 
   new_item_p->values[0] = result;
   for (int i = 1; i < ECMA_LIT_STORAGE_VALUE_COUNT; i++)
@@ -196,7 +196,7 @@ ecma_find_or_create_literal_number (ecma_number_t number_arg) /**< number to be 
   }
 
   ecma_lit_storage_item_t *new_item_p;
-  new_item_p = (ecma_lit_storage_item_t *) jmem_pools_alloc (sizeof (ecma_lit_storage_item_t));
+  new_item_p = JMEM_POOLS_ALLOC (ecma_lit_storage_item_t);
 
   new_item_p->values[0] = result;
   for (int i = 1; i < ECMA_LIT_STORAGE_VALUE_COUNT; i++)

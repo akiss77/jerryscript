@@ -451,7 +451,7 @@ ecma_promise_create_resolving_functions (ecma_object_t *object_p) /**< the promi
                       false);
 
   /* 8. */
-  ecma_promise_resolving_functions_t *funcs = jmem_heap_alloc_block (sizeof (ecma_promise_resolving_functions_t));
+  ecma_promise_resolving_functions_t *funcs = JMEM_POOLS_ALLOC (ecma_promise_resolving_functions_t);
   funcs->resolve = ecma_make_object_value (resolve_p);
   funcs->reject = ecma_make_object_value (reject_p);
 
@@ -468,7 +468,7 @@ ecma_promise_free_resolving_functions (ecma_promise_resolving_functions_t *funcs
 {
   ecma_free_value (funcs->resolve);
   ecma_free_value (funcs->reject);
-  jmem_heap_free_block (funcs, sizeof (ecma_promise_resolving_functions_t));
+  JMEM_POOLS_FREE (funcs, ecma_promise_resolving_functions_t);
 } /* ecma_promise_free_resolving_functions */
 
 /**

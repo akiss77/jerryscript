@@ -40,7 +40,7 @@ ecma_collection_header_t *
 ecma_new_values_collection (void)
 {
   ecma_collection_header_t *header_p;
-  header_p = (ecma_collection_header_t *) jmem_pools_alloc (sizeof (ecma_collection_header_t));
+  header_p = JMEM_POOLS_ALLOC (ecma_collection_header_t);
 
   header_p->item_count = 0;
   header_p->first_chunk_cp = ECMA_NULL_POINTER;
@@ -59,7 +59,7 @@ ecma_free_values_collection (ecma_collection_header_t *header_p, /**< collection
   ecma_collection_chunk_t *chunk_p = ECMA_GET_POINTER (ecma_collection_chunk_t,
                                                        header_p->first_chunk_cp);
 
-  jmem_heap_free_block (header_p, sizeof (ecma_collection_header_t));
+  JMEM_POOLS_FREE (header_p, ecma_collection_header_t);
 
   if (chunk_p == NULL)
   {
@@ -87,7 +87,7 @@ ecma_free_values_collection (ecma_collection_header_t *header_p, /**< collection
 
     ecma_collection_chunk_t *next_chunk_p = ecma_get_collection_chunk_from_value (*item_p);
 
-    jmem_heap_free_block (chunk_p, sizeof (ecma_collection_chunk_t));
+    JMEM_POOLS_FREE (chunk_p, ecma_collection_chunk_t);
 
     chunk_p = next_chunk_p;
   }
@@ -108,7 +108,7 @@ ecma_append_to_values_collection (ecma_collection_header_t *header_p, /**< colle
   if (JERRY_UNLIKELY (header_p->item_count == 0))
   {
     item_index = 0;
-    chunk_p = (ecma_collection_chunk_t *) jmem_heap_alloc_block (sizeof (ecma_collection_chunk_t));
+    chunk_p = JMEM_POOLS_ALLOC (ecma_collection_chunk_t);
 
     ECMA_SET_POINTER (header_p->first_chunk_cp, chunk_p);
     header_p->last_chunk_cp = header_p->first_chunk_cp;
@@ -126,7 +126,7 @@ ecma_append_to_values_collection (ecma_collection_header_t *header_p, /**< colle
                     && ecma_get_collection_chunk_from_value (chunk_p->items[ECMA_COLLECTION_CHUNK_ITEMS]) == NULL);
 
       ecma_collection_chunk_t *next_chunk_p;
-      next_chunk_p = (ecma_collection_chunk_t *) jmem_heap_alloc_block (sizeof (ecma_collection_chunk_t));
+      next_chunk_p = JMEM_POOLS_ALLOC (ecma_collection_chunk_t);
 
       chunk_p->items[ECMA_COLLECTION_CHUNK_ITEMS] = ecma_make_collection_chunk_value (next_chunk_p);
       ECMA_SET_POINTER (header_p->last_chunk_cp, next_chunk_p);

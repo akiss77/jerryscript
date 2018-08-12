@@ -46,46 +46,68 @@ jmem_pools_finalize (void)
 } /* jmem_pools_finalize */
 
 /**
- * Allocate a chunk of specified size
+ * Allocate a chunk of 8 bytes
  *
  * @return pointer to allocated chunk, if allocation was successful,
  *         or NULL - if not enough memory.
  */
 inline void * JERRY_ATTR_HOT JERRY_ATTR_ALWAYS_INLINE
-jmem_pools_alloc (size_t size) /**< size of the chunk */
+jmem_pools_alloc_8 (void)
 {
 #ifdef JMEM_GC_BEFORE_EACH_ALLOC
   jmem_run_free_unused_memory_callbacks (JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
 
-#ifdef JERRY_CPOINTER_32_BIT
-  if (size <= 8)
+  if (JERRY_CONTEXT (jmem_free_8_byte_chunk_p) != NULL)
   {
-#else /* !JERRY_CPOINTER_32_BIT */
-    JERRY_ASSERT (size <= 8);
-#endif /* JERRY_CPOINTER_32_BIT */
+    const jmem_pools_chunk_t *const chunk_p = JERRY_CONTEXT (jmem_free_8_byte_chunk_p);
 
-    if (JERRY_CONTEXT (jmem_free_8_byte_chunk_p) != NULL)
-    {
-      const jmem_pools_chunk_t *const chunk_p = JERRY_CONTEXT (jmem_free_8_byte_chunk_p);
+    JMEM_VALGRIND_DEFINED_SPACE (chunk_p, sizeof (jmem_pools_chunk_t));
 
-      JMEM_VALGRIND_DEFINED_SPACE (chunk_p, sizeof (jmem_pools_chunk_t));
+    JERRY_CONTEXT (jmem_free_8_byte_chunk_p) = chunk_p->next_p;
 
-      JERRY_CONTEXT (jmem_free_8_byte_chunk_p) = chunk_p->next_p;
+    JMEM_VALGRIND_UNDEFINED_SPACE (chunk_p, sizeof (jmem_pools_chunk_t));
 
-      JMEM_VALGRIND_UNDEFINED_SPACE (chunk_p, sizeof (jmem_pools_chunk_t));
+    return (void *) chunk_p;
+  }
+  else
+  {
+    return (void *) jmem_heap_alloc_block (8);
+  }
+} /* jmem_pools_alloc_8 */
 
-      return (void *) chunk_p;
-    }
-    else
-    {
-      return (void *) jmem_heap_alloc_block (8);
-    }
+/**
+ * Free an 8-byte chunk
+ */
+inline void JERRY_ATTR_HOT JERRY_ATTR_ALWAYS_INLINE
+jmem_pools_free_8 (void *chunk_p) /**< pointer to the chunk */
+{
+  JERRY_ASSERT (chunk_p != NULL);
+
+  jmem_pools_chunk_t *const chunk_to_free_p = (jmem_pools_chunk_t *) chunk_p;
+
+  JMEM_VALGRIND_DEFINED_SPACE (chunk_to_free_p, 8);
+
+  chunk_to_free_p->next_p = JERRY_CONTEXT (jmem_free_8_byte_chunk_p);
+  JERRY_CONTEXT (jmem_free_8_byte_chunk_p) = chunk_to_free_p;
+
+  JMEM_VALGRIND_NOACCESS_SPACE (chunk_to_free_p, 8);
+} /* jmem_pools_free_8 */
 
 #ifdef JERRY_CPOINTER_32_BIT
-  }
 
-  JERRY_ASSERT (size <= 16);
+/**
+ * Allocate a chunk of 16 bytes
+ *
+ * @return pointer to allocated chunk, if allocation was successful,
+ *         or NULL - if not enough memory.
+ */
+inline void * JERRY_ATTR_HOT JERRY_ATTR_ALWAYS_INLINE
+jmem_pools_alloc_16 (void)
+{
+#ifdef JMEM_GC_BEFORE_EACH_ALLOC
+  jmem_run_free_unused_memory_callbacks (JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
+#endif /* JMEM_GC_BEFORE_EACH_ALLOC */
 
   if (JERRY_CONTEXT (jmem_free_16_byte_chunk_p) != NULL)
   {
@@ -103,45 +125,27 @@ jmem_pools_alloc (size_t size) /**< size of the chunk */
   {
     return (void *) jmem_heap_alloc_block (16);
   }
-#endif /* JERRY_CPOINTER_32_BIT */
-} /* jmem_pools_alloc */
+} /* jmem_pools_alloc_16 */
 
 /**
- * Free the chunk
+ * Free a 16-byte chunk
  */
 inline void JERRY_ATTR_HOT JERRY_ATTR_ALWAYS_INLINE
-jmem_pools_free (void *chunk_p, /**< pointer to the chunk */
-                 size_t size) /**< size of the chunk */
+jmem_pools_free_16 (void *chunk_p) /**< pointer to the chunk */
 {
   JERRY_ASSERT (chunk_p != NULL);
 
   jmem_pools_chunk_t *const chunk_to_free_p = (jmem_pools_chunk_t *) chunk_p;
 
-  JMEM_VALGRIND_DEFINED_SPACE (chunk_to_free_p, size);
+  JMEM_VALGRIND_DEFINED_SPACE (chunk_to_free_p, 16);
 
-#ifdef JERRY_CPOINTER_32_BIT
-  if (size <= 8)
-  {
-#else /* !JERRY_CPOINTER_32_BIT */
-    JERRY_ASSERT (size <= 8);
+  chunk_to_free_p->next_p = JERRY_CONTEXT (jmem_free_16_byte_chunk_p);
+  JERRY_CONTEXT (jmem_free_16_byte_chunk_p) = chunk_to_free_p;
+
+  JMEM_VALGRIND_NOACCESS_SPACE (chunk_to_free_p, 16);
+} /* jmem_pools_free_16 */
+
 #endif /* JERRY_CPOINTER_32_BIT */
-
-    chunk_to_free_p->next_p = JERRY_CONTEXT (jmem_free_8_byte_chunk_p);
-    JERRY_CONTEXT (jmem_free_8_byte_chunk_p) = chunk_to_free_p;
-
-#ifdef JERRY_CPOINTER_32_BIT
-  }
-  else
-  {
-    JERRY_ASSERT (size <= 16);
-
-    chunk_to_free_p->next_p = JERRY_CONTEXT (jmem_free_16_byte_chunk_p);
-    JERRY_CONTEXT (jmem_free_16_byte_chunk_p) = chunk_to_free_p;
-  }
-#endif /* JERRY_CPOINTER_32_BIT */
-
-  JMEM_VALGRIND_NOACCESS_SPACE (chunk_to_free_p, size);
-} /* jmem_pools_free */
 
 /**
  *  Collect empty pool chunks

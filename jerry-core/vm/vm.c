@@ -2378,7 +2378,7 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
           ecma_collection_chunk_t *next_chunk_p = ecma_get_collection_chunk_from_value (chunk_p->items[index]);
           ECMA_SET_INTERNAL_VALUE_ANY_POINTER (context_top_p[-2], next_chunk_p);
 
-          jmem_heap_free_block (chunk_p, sizeof (ecma_collection_chunk_t));
+          JMEM_POOLS_FREE (chunk_p, ecma_collection_chunk_t);
           continue;
         }
         case VM_OC_FOR_IN_HAS_NEXT:
@@ -2425,7 +2425,7 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
               ecma_collection_chunk_t *next_chunk_p = ecma_get_collection_chunk_from_value (value);
               ECMA_SET_INTERNAL_VALUE_ANY_POINTER (stack_top_p[-2], next_chunk_p);
 
-              jmem_heap_free_block (chunk_p, sizeof (ecma_collection_chunk_t));
+              JMEM_POOLS_FREE (chunk_p, ecma_collection_chunk_t);
               chunk_p = next_chunk_p;
             }
 

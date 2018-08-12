@@ -57,7 +57,7 @@ ecma_create_native_property (ecma_object_t *obj_p, /**< object to create propert
     ecma_property_value_t *value_p;
     value_p = ecma_create_named_data_property (obj_p, name_p, ECMA_PROPERTY_FLAG_WRITABLE, NULL);
 
-    native_pointer_p = jmem_heap_alloc_block (sizeof (ecma_native_pointer_t));
+    native_pointer_p = JMEM_POOLS_ALLOC (ecma_native_pointer_t);
 
     ECMA_SET_INTERNAL_VALUE_POINTER (value_p->value, native_pointer_p);
   }
@@ -150,7 +150,7 @@ ecma_free_native_pointer (ecma_property_t *prop_p) /**< native property */
   ecma_native_pointer_t *native_pointer_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_native_pointer_t,
                                                                              value_p->value);
 
-  jmem_heap_free_block (native_pointer_p, sizeof (ecma_native_pointer_t));
+  JMEM_POOLS_FREE (native_pointer_p, ecma_native_pointer_t);
 } /* ecma_free_native_pointer */
 
 /**
