@@ -55,7 +55,7 @@ JERRY_STATIC_ASSERT (sizeof (ecma_extended_object_t) - sizeof (ecma_object_t) <=
  *
  * @return pointer to allocated memory
  */
-ecma_number_t *
+inline ecma_number_t * JERRY_ATTR_ALWAYS_INLINE
 ecma_alloc_number (void)
 {
   return (ecma_number_t *) jmem_pools_alloc (sizeof (ecma_number_t));
@@ -64,7 +64,7 @@ ecma_alloc_number (void)
 /**
  * Dealloc memory from an ecma-number
  */
-void
+inline void JERRY_ATTR_ALWAYS_INLINE
 ecma_dealloc_number (ecma_number_t *number_p) /**< number to be freed */
 {
   jmem_pools_free ((uint8_t *) number_p, sizeof (ecma_number_t));
