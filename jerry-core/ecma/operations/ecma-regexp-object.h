@@ -52,7 +52,7 @@ typedef struct
   uint16_t flags;                       /**< RegExp flags */
 } re_matcher_ctx_t;
 
-ecma_value_t ecma_op_create_regexp_object_from_bytecode (re_compiled_code_t *bytecode_p);
+ecma_value_t ecma_op_create_regexp_object_from_bytecode (const re_compiled_code_t *bytecode_p);
 ecma_value_t ecma_op_create_regexp_object (ecma_string_t *pattern_p, ecma_string_t *flags_str_p);
 ecma_value_t ecma_regexp_exec_helper (ecma_value_t regexp_value, ecma_value_t input_string, bool ignore_global);
 ecma_value_t ecma_regexp_read_pattern_str_helper (ecma_value_t pattern_arg, ecma_string_t **pattern_string_p);
@@ -60,7 +60,7 @@ ecma_char_t re_canonicalize (ecma_char_t ch, bool is_ignorecase);
 void re_set_result_array_properties (ecma_object_t *array_obj_p, ecma_string_t *input_str_p, uint32_t num_of_elements,
                                      int32_t index);
 ecma_value_t re_parse_regexp_flags (ecma_string_t *flags_str_p, uint16_t *flags_p);
-void re_initialize_props (ecma_object_t *re_obj_p, ecma_string_t *source_p, uint16_t flags);
+void re_initialize_props (ecma_object_t *re_obj_p, const re_compiled_code_t *bytecode_p);
 
 /**
  * @}

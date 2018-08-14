@@ -147,7 +147,7 @@ ecma_builtin_regexp_prototype_compile (ecma_value_t this_arg, /**< this argument
 
         ECMA_SET_INTERNAL_VALUE_POINTER (*bc_prop_p, new_bc_p);
 
-        re_initialize_props (this_obj_p, pattern_string_p, flags);
+        re_initialize_props (this_obj_p, new_bc_p);
 
         ret_value = ECMA_VALUE_UNDEFINED;
 
@@ -197,7 +197,7 @@ ecma_builtin_regexp_prototype_compile (ecma_value_t this_arg, /**< this argument
         }
 
         ECMA_SET_INTERNAL_VALUE_POINTER (*bc_prop_p, new_bc_p);
-        re_initialize_props (this_obj_p, pattern_string_p, flags);
+        re_initialize_props (this_obj_p, new_bc_p);
         ret_value = ECMA_VALUE_UNDEFINED;
 
         ECMA_FINALIZE (bc_dummy);
