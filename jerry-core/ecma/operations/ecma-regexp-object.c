@@ -78,6 +78,7 @@ re_parse_regexp_flags (ecma_string_t *flags_str_p, /**< Input string with flags 
                        uint16_t *flags_p) /**< [out] parsed flag bits */
 {
   ecma_value_t ret_value = ECMA_VALUE_EMPTY;
+  uint16_t flags = 0;
 
   ECMA_STRING_TO_UTF8_STRING (flags_str_p, flags_start_p, flags_start_size);
 
@@ -91,29 +92,29 @@ re_parse_regexp_flags (ecma_string_t *flags_str_p, /**< Input string with flags 
     {
       case 'g':
       {
-        if (*flags_p & RE_FLAG_GLOBAL)
+        if (flags & RE_FLAG_GLOBAL)
         {
           ret_value = ecma_raise_syntax_error (ECMA_ERR_MSG ("Invalid RegExp flags."));
         }
-        *flags_p |= RE_FLAG_GLOBAL;
+        flags |= RE_FLAG_GLOBAL;
         break;
       }
       case 'i':
       {
-        if (*flags_p & RE_FLAG_IGNORE_CASE)
+        if (flags & RE_FLAG_IGNORE_CASE)
         {
           ret_value = ecma_raise_syntax_error (ECMA_ERR_MSG ("Invalid RegExp flags."));
         }
-        *flags_p |= RE_FLAG_IGNORE_CASE;
+        flags |= RE_FLAG_IGNORE_CASE;
         break;
       }
       case 'm':
       {
-        if (*flags_p & RE_FLAG_MULTILINE)
+        if (flags & RE_FLAG_MULTILINE)
         {
           ret_value = ecma_raise_syntax_error (ECMA_ERR_MSG ("Invalid RegExp flags."));
         }
-        *flags_p |= RE_FLAG_MULTILINE;
+        flags |= RE_FLAG_MULTILINE;
         break;
       }
       default:
@@ -126,6 +127,7 @@ re_parse_regexp_flags (ecma_string_t *flags_str_p, /**< Input string with flags 
 
   ECMA_FINALIZE_UTF8_STRING (flags_start_p, flags_start_size);
 
+  *flags_p = flags;
   return ret_value;
 } /* re_parse_regexp_flags  */
 
