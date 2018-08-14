@@ -72,6 +72,7 @@ ecma_builtin_regexp_prototype_compile (ecma_value_t this_arg, /**< this argument
   }
   else
   {
+    ecma_string_t *pattern_string_p = NULL;
     uint16_t flags = 0;
 
     if (ecma_is_value_object (pattern_arg)
@@ -83,81 +84,30 @@ ecma_builtin_regexp_prototype_compile (ecma_value_t this_arg, /**< this argument
       }
       else
       {
-        /* Compile from existing RegExp pbject. */
-        ecma_object_t *target_p = ecma_get_object_from_value (pattern_arg);
+        /* Compile from existing RegExp object. */
+        ecma_object_t *pattern_obj_p = ecma_get_object_from_value (pattern_arg);
 
-        /* Get source. */
-        ecma_string_t *magic_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_SOURCE);
-        ecma_value_t source_value = ecma_op_object_get_own_data_prop (target_p, magic_string_p);
-        ecma_string_t *pattern_string_p = ecma_get_string_from_value (source_value);
+        /* Get existing bytecode. */
+        ecma_value_t *pattern_bc_prop_p = &(((ecma_extended_object_t *) pattern_obj_p)->u.class_prop.u.value);
+        re_compiled_code_t *pattern_bc_p = ECMA_GET_INTERNAL_VALUE_ANY_POINTER (re_compiled_code_t,
+                                                                                *pattern_bc_prop_p);
 
-        /* Get flags. */
-        magic_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_GLOBAL);
-        ecma_value_t global_value = ecma_op_object_get_own_data_prop (target_p, magic_string_p);
-
-        JERRY_ASSERT (ecma_is_value_boolean (global_value));
-
-        if (ecma_is_value_true (global_value))
+        /* Get source and flags. */
+        if (pattern_bc_p != NULL)
         {
-          flags |= RE_FLAG_GLOBAL;
+          pattern_string_p = ecma_get_string_from_value (pattern_bc_p->pattern);
+          ecma_ref_ecma_string (pattern_string_p);
+
+          flags = pattern_bc_p->header.status_flags;
         }
-
-        magic_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_IGNORECASE_UL);
-        ecma_value_t ignore_case_value = ecma_op_object_get_own_data_prop (target_p, magic_string_p);
-
-        JERRY_ASSERT (ecma_is_value_boolean (ignore_case_value));
-
-        if (ecma_is_value_true (ignore_case_value))
+        else
         {
-          flags |= RE_FLAG_IGNORE_CASE;
+          pattern_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_EMPTY_NON_CAPTURE_GROUP);
         }
-
-        magic_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_MULTILINE);
-        ecma_value_t multiline_value = ecma_op_object_get_own_data_prop (target_p, magic_string_p);
-
-        JERRY_ASSERT (ecma_is_value_boolean (multiline_value));
-
-        if (ecma_is_value_true (multiline_value))
-        {
-          flags |= RE_FLAG_MULTILINE;
-        }
-
-        ECMA_TRY_CATCH (obj_this, ecma_op_to_object (this_arg), ret_value);
-        ecma_object_t *this_obj_p = ecma_get_object_from_value (obj_this);
-
-        /* Get bytecode property. */
-        ecma_value_t *bc_prop_p = &(((ecma_extended_object_t *) this_obj_p)->u.class_prop.u.value);
-
-        /* TODO: We currently have to re-compile the bytecode, because
-         * we can't copy it without knowing its length. */
-        const re_compiled_code_t *new_bc_p = NULL;
-        ecma_value_t bc_comp = re_compile_bytecode (&new_bc_p, pattern_string_p, flags);
-        /* Should always succeed, since we're compiling from a source that has been compiled previously. */
-        JERRY_ASSERT (ecma_is_value_empty (bc_comp));
-
-        ecma_deref_ecma_string (pattern_string_p);
-
-        re_compiled_code_t *old_bc_p = ECMA_GET_INTERNAL_VALUE_ANY_POINTER (re_compiled_code_t, *bc_prop_p);
-
-        if (old_bc_p != NULL)
-        {
-          /* Free the old bytecode */
-          ecma_bytecode_deref ((ecma_compiled_code_t *) old_bc_p);
-        }
-
-        ECMA_SET_INTERNAL_VALUE_POINTER (*bc_prop_p, new_bc_p);
-
-        re_initialize_props (this_obj_p, new_bc_p);
-
-        ret_value = ECMA_VALUE_UNDEFINED;
-
-        ECMA_FINALIZE (obj_this);
       }
     }
     else
     {
-      ecma_string_t *pattern_string_p = NULL;
-
       /* Get source string. */
       ret_value = ecma_regexp_read_pattern_str_helper (pattern_arg, &pattern_string_p);
 
@@ -167,48 +117,45 @@ ecma_builtin_regexp_prototype_compile (ecma_value_t this_arg, /**< this argument
         ECMA_TRY_CATCH (flags_str_value,
                         ecma_op_to_string (flags_arg),
                         ret_value);
-
         ECMA_TRY_CATCH (flags_dummy,
                         re_parse_regexp_flags (ecma_get_string_from_value (flags_str_value), &flags),
                         ret_value);
         ECMA_FINALIZE (flags_dummy);
         ECMA_FINALIZE (flags_str_value);
       }
+    }
 
-      if (ecma_is_value_empty (ret_value))
+    if (ecma_is_value_empty (ret_value))
+    {
+      ECMA_TRY_CATCH (obj_this, ecma_op_to_object (this_arg), ret_value);
+      ecma_object_t *this_obj_p = ecma_get_object_from_value (obj_this);
+
+      /* Try to compile bytecode from source (it will succeed if source is copied from existing RegExp). */
+      const re_compiled_code_t *new_bc_p = NULL;
+      ECMA_TRY_CATCH (bc_dummy,
+                      re_compile_bytecode (&new_bc_p, pattern_string_p, flags),
+                      ret_value);
+
+      ecma_value_t *bc_prop_p = &(((ecma_extended_object_t *) this_obj_p)->u.class_prop.u.value);
+
+      /* Free the old bytecode */
+      re_compiled_code_t *old_bc_p = ECMA_GET_INTERNAL_VALUE_ANY_POINTER (re_compiled_code_t, *bc_prop_p);
+      if (old_bc_p != NULL)
       {
-        ECMA_TRY_CATCH (obj_this, ecma_op_to_object (this_arg), ret_value);
-        ecma_object_t *this_obj_p = ecma_get_object_from_value (obj_this);
-
-        ecma_value_t *bc_prop_p = &(((ecma_extended_object_t *) this_obj_p)->u.class_prop.u.value);
-
-        /* Try to compile bytecode from new source. */
-        const re_compiled_code_t *new_bc_p = NULL;
-        ECMA_TRY_CATCH (bc_dummy,
-                        re_compile_bytecode (&new_bc_p, pattern_string_p, flags),
-                        ret_value);
-
-        re_compiled_code_t *old_bc_p = ECMA_GET_INTERNAL_VALUE_ANY_POINTER (re_compiled_code_t, *bc_prop_p);
-
-        if (old_bc_p != NULL)
-        {
-          /* Free the old bytecode */
-          ecma_bytecode_deref ((ecma_compiled_code_t *) old_bc_p);
-        }
-
-        ECMA_SET_INTERNAL_VALUE_POINTER (*bc_prop_p, new_bc_p);
-        re_initialize_props (this_obj_p, new_bc_p);
-        ret_value = ECMA_VALUE_UNDEFINED;
-
-        ECMA_FINALIZE (bc_dummy);
-
-        ECMA_FINALIZE (obj_this);
+        ecma_bytecode_deref ((ecma_compiled_code_t *) old_bc_p);
       }
 
-      if (pattern_string_p != NULL)
-      {
-        ecma_deref_ecma_string (pattern_string_p);
-      }
+      ECMA_SET_INTERNAL_VALUE_POINTER (*bc_prop_p, new_bc_p);
+      re_initialize_props (this_obj_p, new_bc_p);
+      ret_value = ECMA_VALUE_UNDEFINED;
+
+      ECMA_FINALIZE (bc_dummy);
+      ECMA_FINALIZE (obj_this);
+    }
+
+    if (pattern_string_p != NULL)
+    {
+      ecma_deref_ecma_string (pattern_string_p);
     }
   }
 
