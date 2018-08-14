@@ -127,7 +127,9 @@ ecma_builtin_regexp_prototype_compile (ecma_value_t this_arg, /**< this argument
 
     if (ecma_is_value_empty (ret_value))
     {
-      ECMA_TRY_CATCH (obj_this, ecma_op_to_object (this_arg), ret_value);
+      ecma_value_t obj_this = ecma_op_to_object (this_arg);
+      JERRY_ASSERT (!ECMA_IS_VALUE_ERROR (obj_this));
+
       ecma_object_t *this_obj_p = ecma_get_object_from_value (obj_this);
 
       /* Try to compile bytecode from source (it will succeed if source is copied from existing RegExp). */
@@ -150,7 +152,7 @@ ecma_builtin_regexp_prototype_compile (ecma_value_t this_arg, /**< this argument
       ret_value = ECMA_VALUE_UNDEFINED;
 
       ECMA_FINALIZE (bc_dummy);
-      ECMA_FINALIZE (obj_this);
+      ecma_free_value (obj_this);
     }
 
     if (pattern_string_p != NULL)
@@ -188,7 +190,8 @@ ecma_builtin_regexp_prototype_exec (ecma_value_t this_arg, /**< this argument */
   }
   else
   {
-    ECMA_TRY_CATCH (obj_this, ecma_op_to_object (this_arg), ret_value);
+    ecma_value_t obj_this = ecma_op_to_object (this_arg);
+    JERRY_ASSERT (!ECMA_IS_VALUE_ERROR (obj_this));
 
     ECMA_TRY_CATCH (input_str_value,
                     ecma_op_to_string (arg),
@@ -218,7 +221,7 @@ ecma_builtin_regexp_prototype_exec (ecma_value_t this_arg, /**< this argument */
     }
 
     ECMA_FINALIZE (input_str_value);
-    ECMA_FINALIZE (obj_this);
+    ecma_free_value (obj_this);
   }
 
   return ret_value;
@@ -273,9 +276,8 @@ ecma_builtin_regexp_prototype_to_string (ecma_value_t this_arg) /**< this argume
   }
   else
   {
-    ECMA_TRY_CATCH (obj_this,
-                    ecma_op_to_object (this_arg),
-                    ret_value);
+    ecma_value_t obj_this = ecma_op_to_object (this_arg);
+    JERRY_ASSERT (!ECMA_IS_VALUE_ERROR (obj_this));
 
     ecma_object_t *obj_p = ecma_get_object_from_value (obj_this);
 
@@ -331,7 +333,7 @@ ecma_builtin_regexp_prototype_to_string (ecma_value_t this_arg) /**< this argume
 
     ret_value = ecma_make_string_value (output_str_p);
 
-    ECMA_FINALIZE (obj_this);
+    ecma_free_value (obj_this);
   }
 
   return ret_value;
