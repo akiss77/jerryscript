@@ -1,0 +1,52 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: buildpack-deps:xenial
+      - image: mongo:xenial
+
+    working_directory: ~/
+
+    steps:
+      - checkout:
+          path: jerryscript
+
+      - run:
+          name: Install JerryScript build dependencies
+          command: |
+            apt-get update
+            apt-get install -y cmake gcc-multilib gdb # not included in buildpack-deps
+
+      - run:
+          name: Install Fuzzinator
+          command: |
+            apt-get install -y python3 python3-venv python3-dev
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip setuptools wheel
+            git clone https://github.com/renatahodovan/fuzzinator.git # fuzzinator on pypi is still 18.3.1, which is broken
+            cd fuzzinator
+            python3 setup.py install
+
+      - run:
+          name: Install and configure fuzzers
+          command: |
+            git clone https://github.com/renatahodovan/fuzzinator-configs.git # dummy: only grabbing public configs
+
+      - run:
+          name: Fuzz JerryScript
+          command: |
+            source venv/bin/activate
+            export PYTHONPATH=jerryscript/.circleci:$PYTHONPATH
+            mkdir issues
+            set +e
+            timeout 20s fuzzinator -lWARNING @jerryscript/.circleci/jrscifz.args
+            test $? -eq 124
+
+      - store_artifacts:
+          path: issues
+          destination: issues
+
+      - run:
+          name: Signal result
+          command: rmdir issues # rmdir fails if issues dir is non-empty, i.e., if fuzzing found something

@@ -1,0 +1,7 @@
+fuzzinator-configs/fuzzinator/fuzzinator.ini
+fuzzinator-configs/fuzzinator/fuzzinator-sample.ini
+fuzzinator-configs/jerryscript/jerryscript.ini
+fuzzinator-configs/jerryscript/jerryscript-random.ini
+fuzzinator-configs/jerryscript/jerryscript-directory.ini
+fuzzinator-configs/jerryscript/jerryscript-sample.ini
+jerryscript/.circleci/jrscifz.ini
