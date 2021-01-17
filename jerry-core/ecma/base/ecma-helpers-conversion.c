@@ -194,7 +194,8 @@ ecma_round_high_to_uint64 (ecma_uint128_t *num_p)
   name.hi = q32; \
 }
 
-#if defined (__GNUC__) || defined (__clang__)
+#ifdef __has_builtin
+#if __has_builtin(__builtin_clzll)
 
 /**
  * Count leading zeros in the topmost 64 bits of a 128-bit integer.
@@ -208,7 +209,10 @@ ecma_round_high_to_uint64 (ecma_uint128_t *num_p)
 #define ECMA_UINT128_CLZ_MAX4(name) \
   __builtin_clzll (name.hi)
 
-#else /* !__GNUC__ && !__clang__ */
+#endif /* __has_builtin(__builtin_clzll) */
+#endif /* __has_builtin */
+
+#ifndef ECMA_UINT128_CLZ_MAX63
 
 /**
  * Count leading zeros in a 64-bit integer. The behaviour is undefined for 0.
@@ -247,7 +251,7 @@ static const uint8_t ecma_uint4_clz[] = { 4, 3, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0,
 #define ECMA_UINT128_CLZ_MAX4(name) \
   ecma_uint4_clz[name.hi >> 60]
 
-#endif /* __GNUC__ || __clang__ */
+#endif /* ECMA_UINT128_CLZ_MAX63 */
 
 /**
  * @}

@@ -18,7 +18,9 @@
 
 #include "jerryscript.h"
 
-#ifdef __GNUC__
+#ifdef __has_attribute
+#if __has_attribute(__cleanup__)
+
 /*
  * Calls jerry_release_value (*value).
  * The GCC __cleanup__ function must take a pointer to the variable to clean up.
@@ -32,9 +34,13 @@ jerryx_autorelease_cleanup (const jerry_value_t *value) /**< jerry value */
 } /* jerryx_autorelease_cleanup */
 
 #define __JERRYX_AR_VALUE_T_IMPL const jerry_value_t __attribute__ ((__cleanup__(jerryx_autorelease_cleanup)))
-#else /* !__GNUC__ */
+
+#endif /* __has_attribute(__cleanup__) */
+#endif /* __has_attribute */
+
+#ifndef __JERRYX_AR_VALUE_T_IMPL
 /* TODO: for other compilers */
 #error "No autorelease implementation for your compiler!"
-#endif /* __GNUC__ */
+#endif /* __JERRYX_AR_VALUE_T_IMPL */
 
 #endif /* !JERRYX_AUTORELEASE_IMPL_H */

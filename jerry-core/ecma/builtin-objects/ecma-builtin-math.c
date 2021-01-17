@@ -321,6 +321,16 @@ ecma_builtin_math_object_random (void)
   return ecma_make_number_value (((ecma_number_t) rand ()) / rand_max * rand_max_min_1 / rand_max);
 } /* ecma_builtin_math_object_random */
 
+#ifdef __has_builtin
+#if __has_builtin(__builtin_clz)
+#define ECMA_MATH_CLZ32(x, n) do { x = n ? __builtin_clz (n) : 32; } while (0)
+#endif /* __has_builtin(__builtin_clz) */
+#endif /* __has_builtin */
+
+#ifdef _WIN32
+#define ECMA_MATH_CLZ32(x, n) do { unsigned long ret; x = _BitScanReverse (&ret, n) ? 31 - ret : 32; } while (0)
+#endif /* _WIN32 */
+
 /**
  * Dispatcher for the built-in's routines.
  *
@@ -551,12 +561,9 @@ ecma_builtin_math_dispatch_routine (uint8_t builtin_routine_id, /**< built-in wi
       case ECMA_MATH_OBJECT_CLZ32:
       {
         uint32_t n = ecma_number_to_uint32 (x);
-#if defined (__GNUC__) || defined (__clang__)
-        x = n ? __builtin_clz (n) : 32;
-#elif defined (_WIN32)
-        unsigned long ret;
-        x = _BitScanReverse (&ret, n) ? 31 - ret : 32;
-#else
+#ifdef ECMA_MATH_CLZ32
+        ECMA_MATH_CLZ32 (x, n);
+#else /* !ECMA_MATH_CLZ32 */
         x = 32;
         for (int i = 31; i >= 0; i--)
         {
@@ -566,7 +573,7 @@ ecma_builtin_math_dispatch_routine (uint8_t builtin_routine_id, /**< built-in wi
             break;
           }
         }
-#endif
+#endif /* ECMA_MATH_CLZ32 */
         break;
       }
       case ECMA_MATH_OBJECT_FROUND:

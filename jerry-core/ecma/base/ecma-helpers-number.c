@@ -331,6 +331,16 @@ ecma_number_is_infinity (ecma_number_t num) /**< ecma-number */
           && (fraction == 0));
 } /* ecma_number_is_infinity */
 
+#ifdef __has_builtin
+#if __has_builtin(__builtin_isfinite)
+#define ECMA_NUMBER_IS_FINITE(num) __builtin_isfinite (num)
+#endif /* __has_builtin(__builtin_isfinite) */
+#endif /* __has_builtin */
+
+#ifdef __WIN32
+#define ECMA_NUMBER_IS_FINITE(num) isfinite (num)
+#endif /* __WIN32 */
+
 /**
  * Check if number is finite
  *
@@ -340,13 +350,11 @@ ecma_number_is_infinity (ecma_number_t num) /**< ecma-number */
 extern inline bool JERRY_ATTR_ALWAYS_INLINE
 ecma_number_is_finite (ecma_number_t num) /**< ecma-number */
 {
-#if defined (__GNUC__) || defined (__clang__)
-  return __builtin_isfinite (num);
-#elif defined (_WIN32)
-  return isfinite (num);
-#else
+#ifdef ECMA_NUMBER_IS_FINITE
+  return ECMA_NUMBER_IS_FINITE (num);
+#else /* !ECMA_NUMBER_IS_FINITE */
   return !ecma_number_is_nan (num) && !ecma_number_is_infinity (num);
-#endif /* defined (__GNUC__) || defined (__clang__) */
+#endif /* ECMA_NUMBER_IS_FINITE */
 } /* ecma_number_is_finite */
 
 /**
@@ -692,7 +700,8 @@ extern inline ecma_value_t JERRY_ATTR_ALWAYS_INLINE
 ecma_integer_multiply (ecma_integer_value_t left_integer, /**< left operand */
                        ecma_integer_value_t right_integer) /**< right operand */
 {
-#if defined (__GNUC__) || defined (__clang__)
+#ifdef __has_builtin
+#if __has_builtin(__builtin_ctz)
   /* Check if left_integer is power of 2 */
   if (JERRY_UNLIKELY ((left_integer & (left_integer - 1)) == 0))
   {
@@ -704,7 +713,8 @@ ecma_integer_multiply (ecma_integer_value_t left_integer, /**< left operand */
     /* Right shift left_integer with log2 (right_integer) */
     return ecma_make_integer_value (left_integer << (__builtin_ctz ((unsigned int) right_integer)));
   }
-#endif /* defined (__GNUC__) || defined (__clang__) */
+#endif /* __has_builtin(__builtin_ctz) */
+#endif /* __has_builtin */
   return ecma_make_integer_value (left_integer * right_integer);
 } /* ecma_integer_multiply */
 

@@ -25,26 +25,63 @@ extern "C"
  * @{
  */
 
-#ifdef __GNUC__
+#ifdef __has_attribute
 
 /*
- * Compiler-specific macros relevant for GCC.
+ * Compiler-specific macros relevant for compilers supporting the
+ * __has_attribute operator/macro (e.g., GCC & Clang).
  */
-#define JERRY_ATTR_ALIGNED(ALIGNMENT) __attribute__((aligned(ALIGNMENT)))
-#define JERRY_ATTR_ALWAYS_INLINE __attribute__((always_inline))
-#define JERRY_ATTR_CONST __attribute__((const))
-#define JERRY_ATTR_DEPRECATED __attribute__((deprecated))
-#define JERRY_ATTR_FORMAT(...) __attribute__((format(__VA_ARGS__)))
-#define JERRY_ATTR_HOT __attribute__((hot))
-#define JERRY_ATTR_NOINLINE __attribute__((noinline))
-#define JERRY_ATTR_NORETURN __attribute__((noreturn))
-#define JERRY_ATTR_PURE __attribute__((pure))
-#define JERRY_ATTR_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
 
+#if __has_attribute(aligned)
+#define JERRY_ATTR_ALIGNED(ALIGNMENT) __attribute__((aligned(ALIGNMENT)))
+#endif /* __has_attribute(aligned) */
+
+#if __has_attribute(always_inline)
+#define JERRY_ATTR_ALWAYS_INLINE __attribute__((always_inline))
+#endif /* __has_attribute(always_inline) */
+
+#if __has_attribute(const)
+#define JERRY_ATTR_CONST __attribute__((const))
+#endif /* __has_attribute(const) */
+
+#if __has_attribute(deprecated)
+#define JERRY_ATTR_DEPRECATED __attribute__((deprecated))
+#endif /* __has_attribute(deprecated) */
+
+#if __has_attribute(format)
+#define JERRY_ATTR_FORMAT(...) __attribute__((format(__VA_ARGS__)))
+#endif /* __has_attribute(format) */
+
+#if __has_attribute(hot)
+#define JERRY_ATTR_HOT __attribute__((hot))
+#endif /* __has_attribute(hot) */
+
+#if __has_attribute(noinline)
+#define JERRY_ATTR_NOINLINE __attribute__((noinline))
+#endif /* __has_attribute(noinline) */
+
+#if __has_attribute(noreturn)
+#define JERRY_ATTR_NORETURN __attribute__((noreturn))
+#endif /* __has_attribute(noreturn) */
+
+#if __has_attribute(pure)
+#define JERRY_ATTR_PURE __attribute__((pure))
+#endif /* __has_attribute(pure) */
+
+#if __has_attribute(warn_unused_result)
+#define JERRY_ATTR_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#endif /* __has_attribute(warn_unused_result) */
+
+#endif /* __has_attribute */
+
+#ifdef __has_builtin
+
+#if __has_builtin(__builtin_expect)
 #define JERRY_LIKELY(x) __builtin_expect(!!(x), 1)
 #define JERRY_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#endif /* __has_builtin(__builtin_expect) */
 
-#endif /* __GNUC__ */
+#endif /* __has_builtin */
 
 #ifdef _MSC_VER
 
@@ -67,7 +104,8 @@ void * __cdecl _alloca (size_t _Size);
 /*
  * Default empty definitions for all compiler-specific macros. Define any of
  * these in a guarded block above (e.g., as for GCC) to fine tune compilation
- * for your own compiler. */
+ * for your own compiler.
+ */
 
 /**
  * Function attribute to align function to given number of bytes.
